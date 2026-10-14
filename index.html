@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магические свитки Хогвартса</title>
+    <!-- Связь с манифестом для APK / PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Caveat', cursive;
+            background-color: #1a1613;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+                url("bg.jpg");
+            background-repeat: repeat;
+            background-size: 400px;
+            background-attachment: fixed;
+            color: #2b1a08;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- СНЕГОПАД --- */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            background: #ffffff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.8;
+            box-shadow: 0 0 6px #ffffff;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10px) translateX(0); }
+            50% { transform: translateY(50vh) translateX(20px); }
+            100% { transform: translateY(105vh) translateX(-20px); }
+        }
+
+        .notes-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hint {
+            text-align: center;
+            color: #d1b181;
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+        }
+
+        .add-btn {
+            background-color: #c8a973;
+            background-image: linear-gradient(to bottom, #d9be8b, #a67c43);
+            border: 2px solid #5c3b18;
+            border-radius: 8px;
+            color: #241405;
+            font-family: 'Caveat', cursive;
+            font-size: 1.8rem;
+            font-weight: bold;
+            padding: 12px 20px;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+            text-shadow: 1px 1px 0px rgba(240, 220, 180, 0.6);
+            transition: transform 0.2s;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .add-btn:active {
+            transform: scale(0.97);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #d9be8b;
+            background-image: 
+                radial-gradient(circle at 50% 30%, rgba(138, 97, 48, 0.25) 0%, transparent 60%),
+                radial-gradient(ellipse at center, rgba(227, 203, 152, 0.9) 20%, rgba(150, 110, 58, 0.85) 80%, rgba(79, 52, 21, 0.95) 100%);
+            border: 2px solid #5c3b18;
+            border-radius: 8px;
+            padding: 25px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-content h3 {
+            margin: 0;
+            font-size: 2.2rem;
+            color: #241405;
+            text-align: center;
+        }
+
+        .modal-content input, 
+        .modal-content textarea {
+            font-family: 'Caveat', cursive;
+            font-size: 1.5rem;
+            padding: 8px 12px;
+            background: rgba(240, 220, 180, 0.6);
+            border: 1px solid #6e4e27;
+            border-radius: 4px;
+            color: #241405;
+            outline: none;
+        }
+
+        .modal-content textarea {
+            resize: none;
+            height: 120px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            font-family: 'Caveat', cursive;
+            font-size: 1.6rem;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #5c3b18;
+            font-weight: bold;
+        }
+
+        .btn-save { background: #8c6d48; color: #fff; }
+        .btn-cancel { background: #b89765; color: #241405; }
+
+        .note {
+            position: relative;
+            background-color: #d9be8b;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(107, 72, 34, 0.35) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(92, 59, 24, 0.4) 0%, transparent 45%),
+                radial-gradient(circle at 50% 30%, rgba(138, 97, 48, 0.25) 0%, transparent 60%),
+                radial-gradient(ellipse at center, rgba(227, 203, 152, 0.9) 20%, rgba(150, 110, 58, 0.85) 80%, rgba(79, 52, 21, 0.95) 100%);
+            border: 1px solid #6e4e27;
+            border-radius: 6px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            transform: rotate(0.5deg);
+        }
+
+        .note:nth-child(even) {
+            transform: rotate(-0.8deg);
+        }
+
+        .note:not(.expanded) {
+            padding: 15px 40px;
+            text-align: center;
+            background-color: #c8a973;
+            box-shadow: 
+                0 6px 15px rgba(0, 0, 0, 0.7),
+                inset 0 6px 6px -3px rgba(41, 24, 6, 0.8),
+                inset 0 -6px 6px -3px rgba(41, 24, 6, 0.8);
+        }
+
+        .note:not(.expanded)::before,
+        .note:not(.expanded)::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 14px;
+            background: linear-gradient(90deg, #241405, #5c3b18, #241405);
+            box-shadow: inset 0 0 4px rgba(0,0,0,0.9);
+            z-index: 4;
+        }
+        .note:not(.expanded)::before { left: 0; }
+        .note:not(.expanded)::after { right: 0; }
+
+        .note:not(.expanded) h2 {
+            margin: 0;
+            font-size: 2rem;
+            border: none;
+            padding: 0;
+            color: #241405;
+            text-shadow: 1px 1px 0px rgba(240, 220, 180, 0.6);
+        }
+
+        .note:not(.expanded) p,
+        .note:not(.expanded) .mauders-map-prints,
+        .note:not(.expanded) .note-inner::before,
+        .note:not(.expanded) .note-actions {
+            display: none;
+        }
+
+        .note.expanded {
+            padding: 40px;
+            transform: scale(1.02) rotate(0deg) !important;
+            box-shadow: 
+                0 20px 35px rgba(0, 0, 0, 0.8),
+                inset 0 0 50px rgba(71, 46, 17, 0.6),
+                inset 0 0 15px rgba(41, 24, 6, 0.8);
+            z-index: 10;
+        }
+
+        .note.expanded::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.45 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay;
+            opacity: 0.75;
+            pointer-events: none;
+        }
+
+        .note-inner::before {
+            content: '';
+            position: absolute;
+            top: 14px; left: 14px; right: 14px; bottom: 14px;
+            border: 1px dashed rgba(92, 63, 29, 0.35);
+            border-radius: 2% 3% 2% 4% / 4% 2% 5% 3%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .mauders-map-prints {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 2;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='25' viewBox='0 0 50 25'%3E%3Cg fill='%23382210' opacity='0.75'%3E%3Cellipse cx='38' cy='8' rx='2.8' ry='1.7'/%3E%3Cellipse cx='28' cy='8' rx='2' ry='1.2'/%3E%3Cellipse cx='18' cy='16' rx='2.8' ry='1.7'/%3E%3Cellipse cx='8' cy='16' rx='2' ry='1.2'/%3E%3C/g%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='25' height='50' viewBox='0 0 25 50'%3E%3Cg fill='%23382210' opacity='0.75'%3E%3Cellipse cx='9' cy='12' rx='1.7' ry='2.8'/%3E%3Cellipse cx='9' cy='22' rx='1.2' ry='2'/%3E%3Cellipse cx='16' cy='28' rx='1.7' ry='2.8'/%3E%3Cellipse cx='16' cy='38' rx='1.2' ry='2'/%3E%3C/g%3E%3C/svg%3E");
+            background-repeat: repeat-x, repeat-y;
+            background-position: top 12px center, left 12px center;
+        }
+
+        .note.expanded h2 {
+            position: relative;
+            z-index: 3;
+            margin-top: 0;
+            border-bottom: 2px solid #6e4e27;
+            padding-bottom: 8px;
+            color: #241405;
+            font-size: 2.3rem;
+            text-shadow: 1px 1px 0px rgba(240, 220, 180, 0.5);
+        }
+
+        .note.expanded p {
+            position: relative;
+            z-index: 3;
+            line-height: 1.35;
+            font-size: 1.75rem;
+            margin: 12px 0;
+            color: #1c0e03;
+            text-shadow: 0.5px 0.5px 0px rgba(240, 220, 180, 0.4);
+            white-space: pre-wrap;
+        }
+
+        .note-actions {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .edit-btn {
+            background: #a67c43;
+            color: #241405;
+            border: 1px solid #5c3b18;
+            padding: 4px 12px;
+            font-family: 'Caveat', cursive;
+            font-size: 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            background: #8c4343;
+            color: #fff;
+            border: 1px solid #5c1818;
+            padding: 4px 12px;
+            font-family: 'Caveat', cursive;
+            font-size: 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<audio id="bgMusic" loop preload="auto">
+    <source src="https://cdns.live/file/uploads/2023/12/harry-potter-kalimba.mp3" type="audio/mpeg">
+</audio>
+
+<div class="notes-container" id="container">
+    <div class="hint">📜 Магические свитки Хогвартса</div>
+    <button class="add-btn" onclick="openCreateModal()">🪄 Создать свиток</button>
+</div>
+
+<div class="modal" id="noteModal">
+    <div class="modal-content">
+        <h3 id="modalTitleText">Новый свиток</h3>
+        <input type="text" id="noteTitle" placeholder="Название свитка...">
+        <textarea id="noteText" placeholder="Пишите список в столбик..."></textarea>
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+            <button class="btn-save" onclick="saveNote()">Запечатать</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('click', function initAudio() {
+        const music = document.getElementById('bgMusic');
+        music.volume = 0.3;
+        music.play().catch(() => {});
+        document.removeEventListener('click', initAudio);
+    }, { once: true });
+
+    function createSnow() {
+        const snowCount = 35;
+        for (let i = 0; i < snowCount; i++) {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            const size = Math.random() * 5 + 3 + 'px';
+            snowflake.style.width = size;
+            snowflake.style.height = size;
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            snowflake.style.animationDuration = Math.random() * 5 + 4 + 's';
+            snowflake.style.animationDelay = Math.random() * 5 + 's';
+            document.body.appendChild(snowflake);
+        }
+    }
+
+    let notes = JSON.parse(localStorage.getItem('hogwarts_notes')) || [
+        { title: "Заклинания на сегодня", text: "- Вингардиум Левиоса\n- Люмос Максима\n- Алохомора" },
+        { title: "Инвентарь для зелья", text: "1. Сушеная крапива\n2. Толченые змеиные зубы\n3. Корень мандрагоры" }
+    ];
+
+    let editingIndex = null;
+
+    function renderNotes() {
+        const container = document.getElementById('container');
+        const existingElements = container.querySelectorAll('.hint, .add-btn');
+        container.innerHTML = '';
+        existingElements.forEach(el => container.appendChild(el));
+
+        notes.forEach((note, index) => {
+            const noteEl = document.createElement('div');
+            noteEl.className = 'note';
+            noteEl.onclick = (e) => {
+                if (!e.target.closest('.note-actions')) {
+                    noteEl.classList.toggle('expanded');
+                }
+            };
+
+            noteEl.innerHTML = `
+                <div class="note-inner">
+                    <div class="mauders-map-prints"></div>
+                    <h2>${note.title}</h2>
+                    <p>${note.text}</p>
+                    <div class="note-actions">
+                        <button class="edit-btn" onclick="openEditModal(${index})">🪄 Изменить</button>
+                        <button class="delete-btn" onclick="deleteNote(${index})">Уничтожить</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(noteEl);
+        });
+    }
+
+    function openCreateModal() {
+        editingIndex = null;
+        document.getElementById('modalTitleText').textContent = "Новый свиток";
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteText').value = '';
+        document.getElementById('noteModal').classList.add('active');
+    }
+
+    function openEditModal(index) {
+        editingIndex = index;
+        document.getElementById('modalTitleText').textContent = "Изменить свиток";
+        document.getElementById('noteTitle').value = notes[index].title;
+        document.getElementById('noteText').value = notes[index].text;
+        document.getElementById('noteModal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('noteModal').classList.remove('active');
+        editingIndex = null;
+    }
+
+    function saveNote() {
+        const title = document.getElementById('noteTitle').value.trim();
+        const text = document.getElementById('noteText').value.trim();
+
+        if (!title && !text) {
+            alert('Свиток не может быть пустым!');
+            return;
+        }
+
+        const noteData = {
+            title: title || "Безымянный свиток",
+            text: text || "Здесь пока ничего нет..."
+        };
+
+        if (editingIndex !== null) {
+            notes[editingIndex] = noteData;
+        } else {
+            notes.unshift(noteData);
+        }
+
+        localStorage.setItem('hogwarts_notes', JSON.stringify(notes));
+        closeModal();
+        renderNotes();
+    }
+
+    function deleteNote(index) {
+        notes.splice(index, 1);
+        localStorage.setItem('hogwarts_notes', JSON.stringify(notes));
+        renderNotes();
+    }
+
+    createSnow();
+    renderNotes();
+</script>
+
+</body>
+</html>

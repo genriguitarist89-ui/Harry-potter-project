@@ -1,0 +1,27 @@
+{
+  "background_color": "#4a6955",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Магические Заметки",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Заметки мага",
+  "start_url": "/",
+  "theme_color": "#397754",
+  "icons": [
+    {
+      "src": "https://neon-sherbet-c2a843.netlify.app/favicon.ico",
+      "type": "image/x-icon",
+      "isSquare": false,
+      "isPng": false,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    }
+  ],
+  "id": "hogwarts.map",
+  "description": "Магические свитки,заметки"
+}
