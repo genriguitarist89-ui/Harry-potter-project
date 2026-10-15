@@ -1,0 +1,14 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Магические заметки",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Заметки",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "id": "com.magic.notes",
+  "description": "Заметки из свитков",
+  "lang": "ru"
+}
